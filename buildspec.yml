@@ -1,0 +1,71 @@
+version: 0.2
+
+env:
+  variables:
+    PACK_VERSION: v0.28.0
+
+phases:
+  install:
+    runtime-versions:
+        docker: 20
+    commands:
+      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2&
+      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+  pre_build:
+    commands:
+    - echo Logging in to Amazon ECR....
+    - aws --version
+    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/uktrade
+    - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+    - COMMIT_TAG="commit-$COMMIT_HASH"
+    - REPOSITORY_URI=public.ecr.aws/uktrade/nginx-dbt-platform-test
+    - >
+      if [[ $CODEBUILD_WEBHOOK_TRIGGER == branch/* ]]; then
+        BRANCH_TAG="branch-$(echo $CODEBUILD_WEBHOOK_TRIGGER | awk -F "/" '{print $2}')";
+      elif [ "$(git branch --show-current)" != "" ]; then
+        BRANCH_TAG="branch-$(git branch --show-current)";
+      fi
+    - >
+      if [[ $CODEBUILD_WEBHOOK_TRIGGER == tag/* ]]; then
+        INCOMING_TAG=$(echo $CODEBUILD_WEBHOOK_TRIGGER | awk -F "/" '{print $2}');
+        TAG_TAG="tag-$INCOMING_TAG";
+        SEMVER_REGEX='^([0-9]+\.){2}[0-9]+$';
+        if [[ $INCOMING_TAG =~ $SEMVER_REGEX ]]; then
+          TAG_LATEST="tag-latest";
+        fi
+      fi
+    - >
+      echo "COMMIT_TAG: $COMMIT_TAG"
+      echo -e "\nBRANCH_TAG: $BRANCH_TAG"
+      echo -e "\nTAG_TAG: $TAG_TAG"
+      echo -e "\nTAG_LATEST: $TAG_LATEST"
+  build:
+    commands:
+    - echo Build started on `date`
+    - echo Building the Docker image...
+    - docker build -t $REPOSITORY_URI .
+    - docker tag $REPOSITORY_URI:latest "$REPOSITORY_URI:$COMMIT_TAG"
+    - >
+      if [ $BRANCH_TAG != "" ]; then
+        docker tag $REPOSITORY_URI:latest "$REPOSITORY_URI:$BRANCH_TAG";
+      fi
+    - >
+      if [ $TAG_TAG != "" ]; then
+        docker tag $REPOSITORY_URI:latest "$REPOSITORY_URI:$TAG_TAG";
+        if [ $TAG_LATEST != "" ]; then
+          docker tag $REPOSITORY_URI:latest "$REPOSITORY_URI:$TAG_LATEST";
+        fi
+      fi
+    - docker tag $REPOSITORY_URI:latest "$REPOSITORY_URI:$PACK_VERSION_TAG"
+
+  post_build:
+    commands:
+    - if [ "${CODEBUILD_BUILD_SUCCEEDING}" != "1" ]; then echo "Image build failed"; exit; fi
+    - echo Build completed on `date`
+    - echo pushing to repo
+    - docker push -a $REPOSITORY_URI
+    - echo Writing image definitions file...
+    - printf '{"ImageURI":"%s"}' $REPOSITORY_URI:$COMMIT_TAG > imageDetail.json
+artifacts:
+  files:
+    - imageDetail.json

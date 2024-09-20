@@ -17,7 +17,7 @@ elif [ -z ${PUB_PATH_LIST+x} ]; then
   PUBLIC_PATHS=$(<public_paths.txt)
 else
   set_paths "/" "upstream_server_private" "public_paths.txt"
-  for pub in $(echo -e $PUB_PATH_LIST |sed "s/,/ /g") 
+  for pub in $(echo -e $PUB_PATH_LIST |sed "s/,/ /g")
   do
     set_paths "$pub" "upstream_server_public" "public_paths.txt"
   done
@@ -32,11 +32,11 @@ elif [ ${PRIV_PATH_LIST} == '/' ]; then
     PRIVATE_PATHS=$(<private_paths.txt)
 else
   set_paths "/" "upstream_server_public" "private_paths.txt"
-  for priv in $(echo -e $PRIV_PATH_LIST |sed "s/,/ /g") 
+  for priv in $(echo -e $PRIV_PATH_LIST |sed "s/,/ /g")
   do
     set_paths "$priv" "upstream_server_private" "private_paths.txt"
   done
-  PRIVATE_PATHS=$(<private_paths.txt) 
+  PRIVATE_PATHS=$(<private_paths.txt)
 fi
 
 echo ">> generating self signed cert"
@@ -60,7 +60,7 @@ http {
 
   upstream upstream_server_public{
       server localhost:8080;
-  }  
+  }
 
 
   log_format main '\$http_x_forwarded_for - \$remote_user [\$time_local] '
@@ -77,7 +77,7 @@ http {
     ssl_certificate /cert.pem;
     ssl_certificate_key /key.pem;
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-    
+
     include /etc/nginx/mime.types;
     real_ip_header X-Forwarded-For;
     real_ip_recursive on;

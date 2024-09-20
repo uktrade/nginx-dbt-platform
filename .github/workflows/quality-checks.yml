@@ -1,0 +1,26 @@
+name: Quality Checks
+
+on: [push]
+
+jobs:
+  lint:
+    name: Run lint checks
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4
+
+        - name: Install dependencies
+          run: |
+            pip install pre-commit
+
+        - name: docker-lint
+          run: pre-commit run dockerfilelint --all-files
+
+        - name: check-yaml
+          run: pre-commit run check-yaml --all-files
+
+        - name: end-of-file-fixer
+          run: pre-commit run end-of-file-fixer --all-files
+
+        - name: trailing-whitespace
+          run: pre-commit run trailing-whitespace --all-files

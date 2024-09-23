@@ -1,4 +1,4 @@
-FROM nginx:1.23.3
+FROM public.ecr.aws/nginx/nginx:1.23.3
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends dumb-init  && \

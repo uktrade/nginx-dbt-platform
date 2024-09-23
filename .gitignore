@@ -103,6 +103,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# Terraform modules
+.terraform
+
 # IDE/OS ignores
 *DS_Store*
 *idea*

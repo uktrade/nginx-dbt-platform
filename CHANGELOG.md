@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/uktrade/nginx-dbt-platform/compare/1.0.0...1.1.0) (2024-09-30)
+
+
+### Chore
+
+* Move image location from test public.ecr.aws/uktrade/nginx-dbt-platform-test to live public.ecr.aws/uktrade/nginx-dbt-platform
+([cc82e50](https://github.com/uktrade/nginx-dbt-platform/commit/cc82e500aaf07e6dda8675b39dcc8c6b4f82d4f0))
+
 ## [1.0.0](https://github.com/uktrade/nginx-dbt-platform/compare/0.1.0...1.0.0) (2024-09-26)
 
 

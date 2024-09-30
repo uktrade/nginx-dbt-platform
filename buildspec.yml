@@ -14,7 +14,7 @@ phases:
     - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/uktrade
     - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
     - COMMIT_TAG="commit-$COMMIT_HASH"
-    - REPOSITORY_URI=public.ecr.aws/uktrade/nginx-dbt-platform-test
+    - REPOSITORY_URI=public.ecr.aws/uktrade/nginx-dbt-platform
     - >
       if [[ $CODEBUILD_WEBHOOK_TRIGGER == branch/* ]]; then
         BRANCH_TAG="branch-$(echo $CODEBUILD_WEBHOOK_TRIGGER | awk -F "/" '{print $2}')";

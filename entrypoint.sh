@@ -2,12 +2,13 @@
 
 set -euo pipefail
 
+CONTAINER_ID=$(echo $ECS_CONTAINER_METADATA_URI | cut -d'/' -f5)
 # Proxy pass config.  Pass in $1 path, $2 target (public/private), $3 target_file (public/private).
-set_paths () {
+set_paths() {
   LOCATION_PATH=$1
   UPSTREAM_HOST=$2
   OUTPUT_FILE=$3
-  cat << EOF >> $OUTPUT_FILE
+  cat <<EOF >>$OUTPUT_FILE
 
     location $LOCATION_PATH {
         proxy_pass http://$UPSTREAM_HOST;
@@ -17,14 +18,14 @@ set_paths () {
 EOF
 
   if [[ -n "${ALLOW_WEBSOCKETS+x}" ]]; then
-      cat << EOF >> $OUTPUT_FILE
+    cat <<EOF >>$OUTPUT_FILE
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
 EOF
   fi
 
-  echo -e "\n    }" >> $OUTPUT_FILE
+  echo -e "\n    }" >>$OUTPUT_FILE
 }
 
 # Either PRIV_PATH_LIST or PUB_PATH_LIST VARs can be set, not both.
@@ -37,23 +38,20 @@ elif [ -z ${PUB_PATH_LIST+x} ] || [ "$PUB_PATH_LIST" = '/' ]; then
   PUBLIC_PATHS=$(<public_paths.txt)
 else
   set_paths "/" "upstream_server_private" "public_paths.txt"
-  for pub in $(echo -e $PUB_PATH_LIST |sed "s/,/ /g")
-  do
+  for pub in $(echo -e $PUB_PATH_LIST | sed "s/,/ /g"); do
     set_paths "$pub" "upstream_server_public" "public_paths.txt"
   done
   PUBLIC_PATHS=$(<public_paths.txt)
 fi
 
-
-if (! [ -z ${PRIV_PATH_LIST+x} ] && ! [ -z ${PUB_PATH_LIST+x} ] ) || [ -z ${PRIV_PATH_LIST+x} ]; then
+if (! [ -z ${PRIV_PATH_LIST+x} ] && ! [ -z ${PUB_PATH_LIST+x} ]) || [ -z ${PRIV_PATH_LIST+x} ]; then
   PRIVATE_PATHS=""
 elif [ ${PRIV_PATH_LIST} == '/' ]; then
-    set_paths "/" "upstream_server_private" "private_paths.txt"
-    PRIVATE_PATHS=$(<private_paths.txt)
+  set_paths "/" "upstream_server_private" "private_paths.txt"
+  PRIVATE_PATHS=$(<private_paths.txt)
 else
   set_paths "/" "upstream_server_public" "private_paths.txt"
-  for priv in $(echo -e $PRIV_PATH_LIST |sed "s/,/ /g")
-  do
+  for priv in $(echo -e $PRIV_PATH_LIST | sed "s/,/ /g"); do
     set_paths "$priv" "upstream_server_private" "private_paths.txt"
   done
   PRIVATE_PATHS=$(<private_paths.txt)
@@ -61,10 +59,10 @@ fi
 
 echo ">> generating self signed cert"
 openssl req -x509 -newkey rsa:4086 \
--subj "/C=XX/ST=XXXX/L=XXXX/O=XXXX/CN=localhost" \
--keyout "/key.pem" \
--out "/cert.pem" \
--days 3650 -nodes -sha256
+  -subj "/C=XX/ST=XXXX/L=XXXX/O=XXXX/CN=localhost" \
+  -keyout "/key.pem" \
+  -out "/cert.pem" \
+  -days 3650 -nodes -sha256
 
 cat <<EOF >/etc/nginx/nginx.conf
 user nginx;
@@ -85,7 +83,7 @@ http {
 
   log_format main '\$http_x_forwarded_for - \$remote_user [\$time_local] '
                   '"\$request" \$status \$body_bytes_sent "\$http_referer" '
-                  '"\$http_user_agent"' ;
+                  '"\$http_user_agent" "$CONTAINER_ID"' ;
 
   access_log /var/log/nginx/access.log main;
   error_log /var/log/nginx/error.log;

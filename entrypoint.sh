@@ -2,7 +2,13 @@
 
 set -euo pipefail
 
-CONTAINER_ID=$(echo $ECS_CONTAINER_METADATA_URI | cut -d'/' -f5)
+METADATA_URI=${ECS_CONTAINER_METADATA_URI:-}
+if [[ ! -z $METADATA_URI ]]; then
+  CONTAINER_ID=$(echo $METADATA_URI | cut -d'/' -f5)
+else
+  CONTAINER_ID=""
+fi
+
 # Proxy pass config.  Pass in $1 path, $2 target (public/private), $3 target_file (public/private).
 set_paths() {
   LOCATION_PATH=$1
@@ -65,6 +71,8 @@ openssl req -x509 -newkey rsa:4086 \
   -days 3650 -nodes -sha256
 
 cat <<EOF >/etc/nginx/nginx.conf
+load_module modules/ngx_http_datadog_module.so;
+
 user nginx;
 worker_processes 2;
 events {
@@ -72,6 +80,10 @@ events {
 }
 
 http {
+  datadog_service_name $COPILOT_SERVICE_NAME-nginx;
+  datadog_environment $COPILOT_ENVIRONMENT_NAME;
+
+
   upstream upstream_server_private{
       server localhost:8000;
   }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/uktrade/nginx-dbt-platform/compare/1.1.0...1.2.0) (2024-11-26)
+
+
+### Features
+
+* container id in logs ([05448ee](https://github.com/uktrade/nginx-dbt-platform/commit/05448eecbc7c61ecbbd5915a178bc96921bab31e))
+
 ## [1.1.0](https://github.com/uktrade/nginx-dbt-platform/compare/1.0.0...1.1.0) (2024-09-30)
 
 

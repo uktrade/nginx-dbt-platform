@@ -66,6 +66,15 @@ openssl req -x509 -newkey rsa:4086 \
 -out "/cert.pem" \
 -days 3650 -nodes -sha256
 
+# Set header buffer size
+CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES=${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES:-1}
+if ! [[ $CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES =~ ^[0-9]+$ ]]; then
+  echo "Error: If set, CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES must be an integer" >&2;
+  exit 1
+fi
+CLIENT_HEADER_BUFFER_SIZE="${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES}k"
+LARGE_CLIENT_HEADER_BUFFERS="$((${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES} * 8))k"
+
 cat <<EOF >/etc/nginx/nginx.conf
 user nginx;
 worker_processes 2;
@@ -82,6 +91,8 @@ http {
       server localhost:8080;
   }
 
+  client_header_buffer_size ${CLIENT_HEADER_BUFFER_SIZE};
+  large_client_header_buffers 4 ${LARGE_CLIENT_HEADER_BUFFERS};
 
   log_format main '\$http_x_forwarded_for - \$remote_user [\$time_local] '
                   '"\$request" \$status \$body_bytes_sent "\$http_referer" '

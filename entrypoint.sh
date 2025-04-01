@@ -66,7 +66,7 @@ openssl req -x509 -newkey rsa:4086 \
 -out "/cert.pem" \
 -days 3650 -nodes -sha256
 
-# Set header buffer size
+# Set client header buffer size
 CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES=${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES:-1}
 if ! [[ $CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES =~ ^[0-9]+$ ]]; then
   echo "Error: If set, CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES must be an integer" >&2;
@@ -74,6 +74,15 @@ if ! [[ $CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES =~ ^[0-9]+$ ]]; then
 fi
 CLIENT_HEADER_BUFFER_SIZE="${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES}k"
 LARGE_CLIENT_HEADER_BUFFERS="$((${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES} * 8))k"
+
+# Set proxy buffer size
+PROXY_BUFFER_SIZE_IN_KILOBYTES=${PROXY_BUFFER_SIZE_IN_KILOBYTES:-8}
+if ! [[ $PROXY_BUFFER_SIZE_IN_KILOBYTES =~ ^[0-9]+$ ]]; then
+  echo "Error: If set, PROXY_BUFFER_SIZE_IN_KILOBYTES must be an integer" >&2;
+  exit 1
+fi
+PROXY_BUFFER_SIZE="${PROXY_BUFFER_SIZE_IN_KILOBYTES}k"
+PROXY_BUSY_BUFFERS_SIZE="$((${PROXY_BUFFER_SIZE_IN_KILOBYTES} * 2))k"
 
 cat <<EOF >/etc/nginx/nginx.conf
 user nginx;
@@ -105,6 +114,10 @@ http {
     listen 443 ssl;
     server_name localhost;
 
+    proxy_buffer_size ${PROXY_BUFFER_SIZE};
+    proxy_buffers 8 ${PROXY_BUFFER_SIZE};
+    proxy_busy_buffers_size ${PROXY_BUSY_BUFFERS_SIZE};
+
     ssl_certificate /cert.pem;
     ssl_certificate_key /key.pem;
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
@@ -123,6 +136,7 @@ $PRIVATE_PATHS
   }
 }
 EOF
+exit
 
 echo "Running nginx..."
 

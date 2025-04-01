@@ -103,6 +103,10 @@ http {
   client_header_buffer_size ${CLIENT_HEADER_BUFFER_SIZE};
   large_client_header_buffers 4 ${LARGE_CLIENT_HEADER_BUFFERS};
 
+  proxy_buffer_size ${PROXY_BUFFER_SIZE};
+  proxy_buffers 8 ${PROXY_BUFFER_SIZE};
+  proxy_busy_buffers_size ${PROXY_BUSY_BUFFERS_SIZE};
+
   log_format main '\$http_x_forwarded_for - \$remote_user [\$time_local] '
                   '"\$request" \$status \$body_bytes_sent "\$http_referer" '
                   '"\$http_user_agent"' ;
@@ -113,10 +117,6 @@ http {
   server {
     listen 443 ssl;
     server_name localhost;
-
-    proxy_buffer_size ${PROXY_BUFFER_SIZE};
-    proxy_buffers 8 ${PROXY_BUFFER_SIZE};
-    proxy_busy_buffers_size ${PROXY_BUSY_BUFFERS_SIZE};
 
     ssl_certificate /cert.pem;
     ssl_certificate_key /key.pem;

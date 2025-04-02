@@ -2,15 +2,17 @@
 
 set -euo pipefail
 
-# Proxy pass config.  Pass in $1 path, $2 target (public/private), $3 target_file (public/private).
-set_paths () {
-  LOCATION_PATH=$1
-  UPSTREAM_HOST=$2
-  OUTPUT_FILE=$3
-  PROXY_BUFFER_SIZE_IN_KILOBYTES=$4
+# Get settings from environment variables or fall back to defaults
+CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES=${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES:-1}
+PROXY_BUFFER_SIZE_IN_KILOBYTES=${PROXY_BUFFER_SIZE_IN_KILOBYTES:-8}
+
+set_proxy_pass_configuration () {
+  LOCATION_PATH=$1 # E.g. "/", "/admin/" etc.
+  UPSTREAM_HOST=$2 # E.g. "upstream_server_private" or "upstream_server_public"
+  OUTPUT_FILE=$3 # E.g. "private_paths.txt" or "public_paths.txt"
+  PROXY_BUFFER_SIZE_IN_KILOBYTES=$4 # E.g. 8, 16, 32, 64, 128 etc.
 
   # Set proxy buffer size
-  PROXY_BUFFER_SIZE_IN_KILOBYTES=${PROXY_BUFFER_SIZE_IN_KILOBYTES:-8}
   if ! [[ $PROXY_BUFFER_SIZE_IN_KILOBYTES =~ ^[0-9]+$ ]]; then
     echo "Error: If set, PROXY_BUFFER_SIZE_IN_KILOBYTES must be an integer" >&2;
     exit 1
@@ -48,13 +50,13 @@ EOF
 if ! [ -z ${PRIV_PATH_LIST+x} ]; then
   PUBLIC_PATHS=""
 elif [ -z ${PUB_PATH_LIST+x} ] || [ "$PUB_PATH_LIST" = '/' ]; then
-  set_paths "/" "upstream_server_public" "public_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
+  set_proxy_pass_configuration "/" "upstream_server_public" "public_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
   PUBLIC_PATHS=$(<public_paths.txt)
 else
-  set_paths "/" "upstream_server_private" "public_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
+  set_proxy_pass_configuration "/" "upstream_server_private" "public_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
   for pub in $(echo -e $PUB_PATH_LIST |sed "s/,/ /g")
   do
-    set_paths "$pub" "upstream_server_public" "public_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
+    set_proxy_pass_configuration "$pub" "upstream_server_public" "public_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
   done
   PUBLIC_PATHS=$(<public_paths.txt)
 fi
@@ -63,13 +65,13 @@ fi
 if (! [ -z ${PRIV_PATH_LIST+x} ] && ! [ -z ${PUB_PATH_LIST+x} ] ) || [ -z ${PRIV_PATH_LIST+x} ]; then
   PRIVATE_PATHS=""
 elif [ ${PRIV_PATH_LIST} == '/' ]; then
-    set_paths "/" "upstream_server_private" "private_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
+    set_proxy_pass_configuration "/" "upstream_server_private" "private_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
     PRIVATE_PATHS=$(<private_paths.txt)
 else
-  set_paths "/" "upstream_server_public" "private_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
+  set_proxy_pass_configuration "/" "upstream_server_public" "private_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
   for priv in $(echo -e $PRIV_PATH_LIST |sed "s/,/ /g")
   do
-    set_paths "$priv" "upstream_server_private" "private_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
+    set_proxy_pass_configuration "$priv" "upstream_server_private" "private_paths.txt" "${PROXY_BUFFER_SIZE_IN_KILOBYTES}"
   done
   PRIVATE_PATHS=$(<private_paths.txt)
 fi
@@ -82,7 +84,6 @@ openssl req -x509 -newkey rsa:4086 \
 -days 3650 -nodes -sha256
 
 # Set client header buffer size
-CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES=${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES:-1}
 if ! [[ $CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES =~ ^[0-9]+$ ]]; then
   echo "Error: If set, CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES must be an integer" >&2;
   exit 1
@@ -138,7 +139,6 @@ $PRIVATE_PATHS
   }
 }
 EOF
-exit
 
 echo "Running nginx..."
 

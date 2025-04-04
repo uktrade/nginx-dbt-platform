@@ -5,6 +5,7 @@ set -euo pipefail
 # Get settings from environment variables or fall back to defaults
 CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES=${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES:-1}
 PROXY_BUFFER_SIZE_IN_KILOBYTES=${PROXY_BUFFER_SIZE_IN_KILOBYTES:-8}
+ENABLE_DEBUG_LOGGING="${ENABLE_DEBUG_LOGGING:-false}"
 
 set_proxy_pass_configuration () {
   LOCATION_PATH=$1 # E.g. "/", "/admin/" etc.
@@ -91,6 +92,14 @@ fi
 CLIENT_HEADER_BUFFER_SIZE="${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES}k"
 LARGE_CLIENT_HEADER_BUFFERS="$((${CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES} * 8))k"
 
+#Enable debug logging
+ERROR_LOG_SUFFIX=""
+NGINX_COMMAND_SUFFIX=""
+if [ "${ENABLE_DEBUG_LOGGING}" == "true" ]; then
+  ERROR_LOG_SUFFIX=" debug"
+  NGINX_COMMAND_SUFFIX="-debug"
+fi
+
 cat <<EOF >/etc/nginx/nginx.conf
 user nginx;
 worker_processes 2;
@@ -115,7 +124,7 @@ http {
                   '"\$http_user_agent"' ;
 
   access_log /var/log/nginx/access.log main;
-  error_log /var/log/nginx/error.log debug;
+  error_log /var/log/nginx/error.log${ERROR_LOG_SUFFIX};
   server_tokens off;
   server {
     listen 443 ssl;
@@ -143,4 +152,4 @@ EOF
 echo "Running nginx..."
 
 # Launch nginx in the foreground
-/usr/sbin/nginx-debug -g "daemon off;"
+"/usr/sbin/nginx${NGINX_COMMAND_SUFFIX}" -g "daemon off;"

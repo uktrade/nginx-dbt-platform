@@ -115,7 +115,7 @@ http {
                   '"\$http_user_agent"' ;
 
   access_log /var/log/nginx/access.log main;
-  error_log /var/log/nginx/error.log;
+  error_log /var/log/nginx/error.log debug;
   server_tokens off;
   server {
     listen 443 ssl;

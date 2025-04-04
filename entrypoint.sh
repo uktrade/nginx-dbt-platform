@@ -143,4 +143,4 @@ EOF
 echo "Running nginx..."
 
 # Launch nginx in the foreground
-/usr/sbin/nginx -g "daemon off;"
+/usr/sbin/nginx-debug -g "daemon off;"

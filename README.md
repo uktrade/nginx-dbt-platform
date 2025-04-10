@@ -15,6 +15,9 @@ Configuration is applied via environment variables exposed to the container at r
 - `PUB_PATH_LIST` - a list of paths that will be routed directly to the application container.
 - `PRIV_HOST_LIST` - a list of domain names that will be routed via the ip filter container.
 - `PUB_HOST_LIST` - a list of domain names that will be routed directly to the application container.
+- `CLIENT_HEADER_BUFFER_SIZE_IN_KILOBYTES` - set the [client header buffer](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_header_buffer_size) size (defaults to 1)
+- `PROXY_BUFFER_SIZE_IN_KILOBYTES` - set the [proxy buffer size](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size) (defaults to 8)
+- `ENABLE_DEBUG_LOGGING` - enable debug logging (only temporary use recommended)
 
 ## Building the Image locally
 

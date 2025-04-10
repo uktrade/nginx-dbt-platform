@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/uktrade/nginx-dbt-platform/compare/1.1.0...1.2.0) (2025-04-10)
+
+
+### Features
+
+* Allow setting some buffer sizes and enabling debug logging (DBTP-1937) ([#11](https://github.com/uktrade/nginx-dbt-platform/issues/11)) ([fbe83c0](https://github.com/uktrade/nginx-dbt-platform/commit/fbe83c06daf27aaf9998548afa1dcf6587defb2f))
+
 ## [1.1.0](https://github.com/uktrade/nginx-dbt-platform/compare/1.0.0...1.1.0) (2024-09-30)
 
 

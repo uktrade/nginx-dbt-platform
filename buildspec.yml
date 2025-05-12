@@ -58,7 +58,10 @@ phases:
     - if [ "${CODEBUILD_BUILD_SUCCEEDING}" != "1" ]; then echo "Image build failed"; exit; fi
     - echo Build completed on `date`
     - echo pushing to repo
-    - docker push -a $REPOSITORY_URI
+    - docker push $REPOSITORY_URI:$COMMIT_TAG
+    - docker push $REPOSITORY_URI:$BRANCH_TAG
+    - docker push $REPOSITORY_URI:$TAG_TAG
+    - docker push $REPOSITORY_URI:$TAG_LATEST
     - echo Writing image definitions file...
     - printf '{"ImageURI":"%s"}' $REPOSITORY_URI:$COMMIT_TAG > imageDetail.json
 artifacts:

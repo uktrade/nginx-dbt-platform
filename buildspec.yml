@@ -55,7 +55,7 @@ phases:
           docker tag $REPOSITORY_URI:$COMMIT_TAG "$REPOSITORY_URI:$TAG_LATEST";
         fi
         if [ "$SEMANTIC_LATEST" != "" ]; then
-          docker tag $REPOSITORY_URI:$COMMIT_TAG "$REPOSITORY_URI:SEMANTIC_LATEST";
+          docker tag $REPOSITORY_URI:$COMMIT_TAG "$REPOSITORY_URI:$SEMANTIC_LATEST";
         fi
       fi
 

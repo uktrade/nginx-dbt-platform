@@ -28,6 +28,7 @@ phases:
         SEMVER_REGEX='^([0-9]+\.){2}[0-9]+$';
         if [[ $INCOMING_TAG =~ $SEMVER_REGEX ]]; then
           TAG_LATEST="tag-latest";
+          SEMANTIC_LATEST="latest"
         fi
       fi
     - >
@@ -35,23 +36,29 @@ phases:
       echo -e "\nBRANCH_TAG: $BRANCH_TAG"
       echo -e "\nTAG_TAG: $TAG_TAG"
       echo -e "\nTAG_LATEST: $TAG_LATEST"
+      echo -e "\nSEMANTIC_LATEST: $SEMANTIC_LATEST"
   build:
     commands:
     - echo Build started on `date`
     - echo Building the Docker image...
-    - docker build -t $REPOSITORY_URI .
-    - docker tag $REPOSITORY_URI:latest "$REPOSITORY_URI:$COMMIT_TAG"
+    # - docker build -t $REPOSITORY_URI .    # adds 'latest' tag by default
+    - docker build -t $REPOSITORY_URI:$COMMIT_TAG .
+    
     - >
       if [ $BRANCH_TAG != "" ]; then
-        docker tag $REPOSITORY_URI:latest "$REPOSITORY_URI:$BRANCH_TAG";
+        docker tag $REPOSITORY_URI:$COMMIT_TAG "$REPOSITORY_URI:$BRANCH_TAG";
       fi
     - >
       if [ $TAG_TAG != "" ]; then
-        docker tag $REPOSITORY_URI:latest "$REPOSITORY_URI:$TAG_TAG";
+        docker tag $REPOSITORY_URI:$COMMIT_TAG "$REPOSITORY_URI:$TAG_TAG";
         if [ $TAG_LATEST != "" ]; then
-          docker tag $REPOSITORY_URI:latest "$REPOSITORY_URI:$TAG_LATEST";
+          docker tag $REPOSITORY_URI:$COMMIT_TAG "$REPOSITORY_URI:$TAG_LATEST";
+        fi
+        if [ "$SEMANTIC_LATEST" != "" ]; then
+          docker tag $REPOSITORY_URI:$COMMIT_TAG "$REPOSITORY_URI:$SEMANTIC_LATEST";
         fi
       fi
+
 
   post_build:
     commands:

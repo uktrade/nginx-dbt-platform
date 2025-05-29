@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/uktrade/nginx-dbt-platform/compare/1.2.0...1.3.0) (2025-05-29)
+
+
+### Features
+
+* Remove terraform from Nginx folder (DBTP-1340) ([#15](https://github.com/uktrade/nginx-dbt-platform/issues/15)) ([a326289](https://github.com/uktrade/nginx-dbt-platform/commit/a32628964a5a7d9907a2ae57117ecd1110308c08))
+* Update buildspec to tag 'latest' for semantic releases only (DBTP-2088) ([#14](https://github.com/uktrade/nginx-dbt-platform/issues/14)) ([cc6f0e8](https://github.com/uktrade/nginx-dbt-platform/commit/cc6f0e8a546a1967df7796df911528aff9c64b35))
+
 ## [1.2.0](https://github.com/uktrade/nginx-dbt-platform/compare/1.1.0...1.2.0) (2025-04-10)
 
 
